@@ -1,4 +1,4 @@
-baseURL = "/"
+baseURL = "https://alex-labuda.netlify.app/"
 theme = "hugo-apero"
 languageCode = "en"
 title = "My Data Science Blog"
