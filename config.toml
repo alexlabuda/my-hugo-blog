@@ -69,12 +69,12 @@ enableEmoji = true
   headingFontFamily = "sans-serif"
 
   # Configuration of https://utteranc.es/ for comments
-  [params.utterances]
-    use_utterances = true
-    repo_name = "apreshill/apero"
-    issue_term = "pathname" # url, pathname, or title
-    theme = "boxy-light"
-    label = "comments :crystal_ball:"
+#  [params.utterances]
+#    use_utterances = true
+#    repo_name = "apreshill/apero"
+#    issue_term = "pathname" # url, pathname, or title
+#    theme = "boxy-light"
+#    label = "comments :crystal_ball:"
 
   # Configuration of math rendering
   [params.math]
@@ -126,31 +126,31 @@ enableEmoji = true
     title = "About Blogophonic"
     url = "/about/"
     weight = 1
-  [[menu.header]]
-    name = "Blog"
-    title = "Blog"
-    url = "/blog/"
-    weight = 2
-  [[menu.header]]
-    name = "Projects"
-    title = "Project Portfolio"
-    url = "/project/"
-    weight = 3
-  [[menu.header]]
-    name = "Talks"
-    title = "Talks"
-    url = "/talk/"
-    weight = 4
-  [[menu.header]]
-    name = "A collection"
-    title = "A collection"
-    url = "/collection/"
-    weight = 5
-  [[menu.header]]
-    name = "Elements"
-    title = "Element Page"
-    url = "/elements/"
-    weight = 6
+#  [[menu.header]]
+#    name = "Blog"
+#    title = "Blog"
+#    url = "/blog/"
+#    weight = 2
+#  [[menu.header]]
+#    name = "Projects"
+#    title = "Project Portfolio"
+#    url = "/project/"
+#    weight = 3
+#  [[menu.header]]
+#    name = "Talks"
+#    title = "Talks"
+#    url = "/talk/"
+#    weight = 4
+#  [[menu.header]]
+#    name = "A collection"
+#    title = "A collection"
+#    url = "/collection/"
+#    weight = 5
+#  [[menu.header]]
+#    name = "Elements"
+#    title = "Element Page"
+#    url = "/elements/"
+#    weight = 6
     
   # Configure footer  
   [[menu.footer]]
