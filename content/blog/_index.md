@@ -1,7 +1,7 @@
 ---
 title: A Blog That Works
 description: |
-  Welcome to my Blog! Check back for new content.
+  Welcome to my Blog! Check back soon for new content.
 author: "Alex Labuda"
 show_post_thumbnail: true
 thumbnail_left: true # for list-sidebar only
