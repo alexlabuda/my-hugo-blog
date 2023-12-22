@@ -13,7 +13,7 @@ images:
 image_left: false
 text_align_left: true
 show_social_links: true # specify social accounts in site config
-show_action_link: false    #### CHANGE TO TRUE ONCE ADD CONTENT HERE ### 
+show_action_link: true    #### CHANGE TO TRUE ONCE ADD CONTENT HERE ### 
 action_link: /about
 action_label: "Read More &rarr;"
 action_type: text # text, button
