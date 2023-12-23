@@ -123,7 +123,14 @@ df |>
         .show_summary = FALSE,
         .title        = "Simple Regression Model (Grand Mean)",
         .legend_show  = FALSE
-    )
+    ) + 
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 15, face = "bold"),
+    axis.title = element_text(size = 11, face = "bold"),
+    axis.text  = element_text(size = 11)
+  )
 ```
 
 We can make a more accurate model by using month of year as independent variables for our model

@@ -106,13 +106,13 @@ We can fit a model using bootstrapped resamples of our data. This allows us to d
 
 |term             |    .lower| .estimate|  .upper|
 |:----------------|---------:|---------:|-------:|
-|as.numeric(date) | -125.6771|  -31.8722| 55.4291|
-|billboard_spend  |   -0.1073|    0.0417|  0.1599|
-|competitor_sales |    0.2640|    0.2865|  0.3045|
-|facebook_spend   |   -0.0169|    0.3617|  0.7183|
-|print_spend      |    0.2869|    0.8760|  1.4003|
-|search_spend     |   -0.5402|    0.5047|  1.7550|
-|tv_spend         |    0.2242|    0.5051|  0.7539|
+|as.numeric(date) | -139.8262|  -30.8792| 61.3370|
+|billboard_spend  |   -0.1091|    0.0384|  0.1702|
+|competitor_sales |    0.2645|    0.2866|  0.3038|
+|facebook_spend   |   -0.0506|    0.3581|  0.7035|
+|print_spend      |    0.2908|    0.8617|  1.4427|
+|search_spend     |   -0.5209|    0.5194|  1.6876|
+|tv_spend         |    0.2251|    0.5112|  0.7725|
 
 ## Viz: Bootstrapped Resampled Coefficients
 
