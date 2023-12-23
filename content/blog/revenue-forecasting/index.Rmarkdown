@@ -1,0 +1,513 @@
+---
+title: "Bootstrapped Resampling Regression & Revenue Forecasting"
+subtitle: ""
+excerpt: "We'll analyze regression coefficients with bootstrapped resamples, visualize most important features and forecast future revenue"
+date: 2022-11-28
+author: "Alex Labuda"
+draft: false
+thumbnail_left: true # for list-sidebar only
+show_author_byline: true
+images: 
+series:
+tags: ["machine learning", "regression", "feature importance", "time-series forecasting"]
+categories:
+layout: single
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 8, fig.height = 5)
+library(tidyverse)
+library(broom)
+theme_set(theme_minimal())
+```
+
+![](featured.jpg)
+
+In this post, I'll begin by visualizing marketing related time-series data which includes revenue and spend for several direct marketing channels.
+
+I will fit a simple regression model and examine the effect of each channel on revenue.
+
+In order to better understand the reliability of each coefficient, I will fit many bootstrapped resamples to develop a more robust estimate of each coefficient.
+
+Lastly, I will create a forecasting model to predict future revenue. Enjoy!
+
+```{r include=FALSE}
+library(modeltime)
+library(timetk)
+library(lubridate)
+library(gt)
+
+interactive <- FALSE
+```
+
+# The Data
+
+```{r include=FALSE}
+df <- 
+  read_csv(
+    file = "data/marketing_data.csv"
+  ) |> 
+  mutate(
+    date = mdy(date)
+  )
+```
+
+
+```{r echo=FALSE}
+df |> 
+  head(6) |> 
+  select(date:facebook_impressions) |> 
+  knitr::kable(format.args = list(big.mark = ',', decimals = 0))
+# 
+#   gt() |> 
+#   # rename columns
+#   tab_header(
+#     title = "Marketing Data",
+#     subtitle = "Revenue and spend for several direct marketing channels"
+#   ) |> 
+#   fmt_currency(
+#     columns = vars(revenue, tv_spend, billboard_spend, print_spend, search_spend, facebook_spend, competitor_sales), scale_by = 1/1000, suffix = "k", decimals = 1
+#   ) |> 
+#   fmt_number(
+#     vars(facebook_impressions, search_impressions), scale_by = 1/1000, suffix = "k", decimals = 1
+#   ) |> 
+#   cols_label(
+#     date = "Date",
+#     revenue = "Revenue",
+#     tv_spend = "TV Spend",
+#     billboard_spend = "Billboard Spend",
+#     print_spend = "Print Spend",
+#     search_spend = "Search Spend",
+#     facebook_spend = "Facebook Spend",
+#     competitor_sales = "Competitor Sales",
+#     facebook_impressions = "Facebook Impressions",
+#     search_impressions = "Search Impressions"
+#   ) |> 
+#   tab_source_note(
+#     source_note = "Source: Meta Robyn Sample Data"
+#   ) 
+```
+
+
+# Visualize the Data
+
+First lets visualize our target variable, `revenue`
+
+```{r echo=FALSE}
+df |> 
+  ggplot(aes(date, revenue)) +
+  geom_line() +
+  labs(
+    title = "Revenue by week",
+    x     = "") +
+  scale_y_continuous(labels = scales::dollar_format(scale = 1/1000000, suffix = "M", accuracy = .1)) +
+  theme(
+    plot.title      = element_text(size = 15, face = "bold"),
+    axis.title      = element_text(size = 11, face = "bold"),
+    axis.text       = element_text(size = 11),
+    legend.position = "none",
+    panel.grid      = element_blank()
+  )
+```
+
+# Fit: Simple Regression Model
+
+First we'll start by fitting a simple regression model to the data. This is just the grand mean of our data.
+
+```{r echo=FALSE}
+df |>
+    plot_time_series_regression(
+        .date_var     = date,
+        .formula      = revenue ~ as.numeric(date),
+        .interactive  = interactive,
+        .show_summary = FALSE,
+        .title        = "Simple Regression Model (Grand Mean)",
+        .legend_show  = FALSE
+    )
+```
+
+We can make a more accurate model by using month of year as independent variables for our model
+
+```{r}
+df |>
+    plot_time_series_regression(
+        .date_var     = date,
+        .formula      = revenue ~ as.numeric(date) + month(date, label = TRUE),
+        .interactive  = interactive,
+        .show_summary = FALSE,
+        .title        = "Simple Regression Model (with date dummy variables)",
+        .legend_show  = FALSE
+    ) +
+  theme_minimal() +
+  theme(
+    plot.title      = element_text(size = 15, face = "bold"),
+    axis.title      = element_text(size = 11, face = "bold"),
+    axis.text       = element_text(size = 11),
+    legend.position = "none",
+    panel.grid      = element_blank()
+  )
+```
+
+We can also introduce our spend variables as input to our model to study each channel's effect on revenue
+
+```{r echo=FALSE}
+df |>
+    plot_time_series_regression(
+        .date_var     = date,
+        .formula      = revenue ~ as.numeric(date) + month(date, label = TRUE) + tv_spend +
+          billboard_spend + print_spend + search_spend + facebook_spend + competitor_sales,
+        .interactive  = interactive,
+        .show_summary = FALSE,
+        .title        = "Simple Regression Model (with date dummy variables + external regressors)",
+        .legend_show  = FALSE
+    ) +
+  theme_minimal() +
+  theme(
+    plot.title      = element_text(size = 14, face = "bold", hjust = -4),
+    axis.title      = element_text(size = 11, face = "bold"),
+    axis.text       = element_text(size = 11),
+    legend.position = "none",
+    panel.grid      = element_blank()
+  )
+```
+
+# A Simple Linear Model
+
+Now lets take a look at our simple model output that includes direct marketing features and examine their effect of revenue
+
+We can see that:
+
+-   TV spend, print spend, competitor sales and Facebook spend are statistically significant
+-   Print spend has the largest positive effect at increasing revenue of each of the direct marketing inputs
+-   A large positive intercept suggests that this company already has a strong baseline of sales
+
+```{r echo=FALSE}
+# forcing intercept to 0 to just show the gap from 0 instead of a base
+revenue_fit <- lm(revenue ~ as.numeric(date) + tv_spend + billboard_spend + print_spend + 
+                    search_spend + facebook_spend + competitor_sales, data = df)
+
+summary(revenue_fit) |> 
+  tidy() |> 
+  knitr::kable(digits = 3)
+  # tidy() |> 
+  # gt() |> 
+  # tab_header(
+  #   title = "Regression Model Summary"
+  # ) |> 
+  # fmt_number(
+  #   vars(estimate, std.error, statistic, p.value), decimals = 4
+  # ) |> 
+  # cols_label(
+  #   term = "Channel",
+  #   estimate = "Coefficient",
+  #   std.error = "Std. Error",
+  #   statistic = "t-statistic",
+  #   p.value = "p-value"
+  # ) 
+```
+
+## Viz: SLM coefficients
+
+We can plot the coefficient and confidence intervals to make it easier to see the reliability of each estimate
+
+-   Print spend has the largest positive coefficient, but also the widest confidence interval
+-   Our model is very confident in the estimated effect of competitor sales
+
+```{r echo=FALSE}
+library(broom)
+library(dotwhisker)
+
+tidy(revenue_fit) |> 
+  filter(p.value < 0.1) |> 
+  mutate(
+         term = fct_reorder(term, -estimate)) |> 
+  dwplot(
+    # vars_order = levels(.$term),
+    dot_args = list(size = 3, color = "darkred"),
+  whisker_args = list(color = "darkred", alpha = 0.75)
+  ) +
+  labs(x = "Coefficient by channel",
+       y = NULL,
+       title = "Simple Linear Model Coefficients") +
+  theme(
+    plot.title      = element_text(size = 15, face = "bold"),
+    axis.title      = element_text(size = 11, face = "bold"),
+    axis.text       = element_text(size = 11),
+    legend.position = "none",
+    panel.grid      = element_blank()
+  )
+```
+
+# Fit: Bootstrap Resampling
+
+## How reliable are our coefficients?
+
+We can fit a model using bootstrapped resamples of our data. This allows us to determine the stability of our coefficient estimates. Essentially this is fitting many small models to examine the variation of each channel's coefficient.
+
+-   By default `reg_intervals` uses 1,001 bootstrap samples for t-intervals and 2,001 for percentile intervals.
+
+```{r echo=FALSE}
+library(rsample)
+
+revenue_intervals <-
+  reg_intervals(revenue ~ as.numeric(date) + tv_spend + billboard_spend + print_spend + 
+                    search_spend + facebook_spend + competitor_sales,
+                data = df, keep_reps = TRUE)
+
+revenue_intervals |> 
+  select(term:.upper) |>
+  knitr::kable(digits = 4)
+  # gt() |>
+  # tab_header(
+  #   title = "Bootstrapped Resampled Model Coefficients"
+  # ) |>
+  # fmt_number(
+  #   vars(.estimate, .lower, .upper), decimals = 4
+  # ) |>
+  # cols_label(
+  #   term = "Channel",
+  #   .estimate = "Coefficient",
+  #   .lower = "Lower CI",
+  #   .upper = "Upper CI"
+  # )
+```
+
+## Viz: Bootstrapped Resampled Coefficients
+
+### Crossbar chart
+
+-   Here we can see the wide confidence interval surrounding `search_spend`.
+-   This makes sense since the coefficient for this channel in our first linear model was not statistically significant.
+
+```{r echo=FALSE}
+revenue_intervals |>
+  filter(!term == "as.numeric(date)") |> 
+    mutate(
+        term = fct_reorder(term, .estimate)
+    ) |>
+    ggplot(aes(.estimate, term)) +
+    geom_pointrange(aes(xmin = .lower, xmax = .upper),
+                  color = "darkred", alpha = 0.8) +
+  labs(x = "Coefficient by channel", 
+       y = NULL, 
+       title = "Bootstrapped Resampled Model Coefficients", 
+       subtitle = "95% Confidence Intervals") +
+  theme(
+    plot.title      = element_text(size = 15, face = "bold"),
+    axis.title      = element_text(size = 11, face = "bold"),
+    axis.text       = element_text(size = 11),
+    legend.position = "none",
+    panel.grid      = element_blank()
+  )
+```
+
+# Time-Series Forecasting
+
+Lets build our forecasting model!
+
+```{r echo=FALSE}
+df_ts <- 
+  df |> 
+  select(date, revenue)
+
+df_ts |> 
+  ggplot(aes(date, revenue)) +
+  geom_line() +
+  labs(
+    title = "Revenue by week",
+    x     = NULL,
+    y     = ""
+    ) +
+  scale_y_continuous(labels = scales::label_currency(scale = 1 / 1000000, accuracy = 0.1, suffix = "M")) +
+  theme(
+    plot.title      = element_text(size = 15, face = "bold"),
+    axis.title      = element_text(size = 11, face = "bold"),
+    axis.text       = element_text(size = 11),
+    legend.position = "none",
+    panel.grid      = element_blank()
+  )
+```
+
+## Training & Testing Splits
+
+First, I'll split the data into training and testing sets
+
+```{r echo=FALSE}
+splits <- 
+  df_ts |> 
+  time_series_split(assess = "12 months", cumulative = TRUE)
+
+splits |> 
+  tk_time_series_cv_plan() |> 
+  plot_time_series_cv_plan(date, revenue, .interactive = interactive, .facet_strip_remove = TRUE, .legend_show = FALSE) +
+  labs(title = "Timeseries - Training / Testing Split") +
+  scale_y_continuous(labels = scales::label_currency(scale = 1 / 1000000, accuracy = 0.1, suffix = "M")) + 
+  theme_minimal() + 
+  theme(
+    panel.grid      = element_blank(),
+    legend.position = "none"
+  )
+```
+
+## Modeling
+
+Now we can create the recipe for our model. 
+
+After we `bake`, we can see what the output looks like.
+
+```{r echo=FALSE}
+library(tidymodels)
+recipe_spec_timeseries <- 
+  recipe(revenue ~., data = training(splits)) |>
+    step_timeseries_signature(date) 
+
+bake(prep(recipe_spec_timeseries), new_data = training(splits)) |> 
+  head() |> 
+  glimpse()
+```
+
+### Preprocessing Steps
+
+Now we'll add a few additional preprocessing steps to our recipe:
+
+-   Convert a date column into a fourier series
+-   Remove date
+-   Normalize the inputs
+-   one-hot encode categorical inputs (add dummies)
+
+```{r echo=FALSE}
+recipe_spec_final <- recipe_spec_timeseries |>
+    step_fourier(date, period = 365, K = 1) |>
+    step_rm(date) |>
+    step_rm(contains("iso"), contains("minute"), contains("hour"),
+            contains("am.pm"), contains("xts")) |>
+    step_normalize(contains("index.num"), date_year) |>
+    step_dummy(contains("lbl"), one_hot = TRUE) 
+
+recipe_spec_prophet <- recipe_spec_timeseries
+
+juice(prep(recipe_spec_final)) |> 
+  head() |> 
+  glimpse()
+```
+
+## Model Specs
+
+1. linear regression
+2. xgboost
+3. prophet
+
+```{r echo=FALSE}
+model_spec_lm <- linear_reg(mode = "regression") |>
+    set_engine("lm")
+
+model_spec_xgb <- boost_tree(mode = "regression") |> 
+  set_engine("xgboost")
+
+model_spec_prophet <- prophet_reg(mode = "regression") |> 
+  set_engine("prophet")
+
+model_spec_lm
+model_spec_xgb
+model_spec_prophet
+```
+
+## Workflow
+
+We can add our recipe and model to a workflow
+
+```{r echo=FALSE}
+workflow_lm <- workflow() |>
+    add_recipe(recipe_spec_final) |>
+    add_model(model_spec_lm)
+
+workflow_xgb <- workflow() |> 
+  add_recipe(recipe_spec_final) |> 
+  add_model(model_spec_xgb)
+
+workflow_prophet <- workflow() |> 
+  add_recipe(recipe_spec_prophet) |> 
+  add_model(model_spec_prophet)
+
+workflow_prophet
+```
+
+## Fit our Model
+
+```{r}
+workflow_fit_lm <- 
+  workflow_lm |> 
+  fit(data = training(splits))
+
+workflow_fit_xgb <- 
+  workflow_xgb |> 
+  fit(data = training(splits))
+
+workflow_fit_prophet <-
+  workflow_prophet |> 
+  fit(data = training(splits))
+
+workflow_fit_prophet
+```
+
+```{r}
+model_table <- modeltime_table(
+  workflow_fit_lm,
+  workflow_fit_xgb,
+  workflow_fit_prophet
+) 
+
+calibration_table <- model_table |>
+  modeltime_calibrate(testing(splits))
+```
+
+## Measure Accuracy
+
+```{r}
+calibration_table |> 
+    modeltime_accuracy(acc_by_id = FALSE) |> 
+    select(-.type:-smape) |> 
+    knitr::kable(digits = 3)
+  
+    # table_modeltime_accuracy(.interactive = FALSE) |> 
+    # cols_label(
+    #   .model_id   = "Model #",
+    #   .model_desc = "Model Description",
+    #   .type       = "Evaluation Type",
+    #   mae         = "MAE",
+    #   mape        = "MAPE",
+    #   mase        = "MASE",
+    #   smape       = "SMAPE",
+    #   rmse        = "RMSE",
+    #   rsq         = "R-Squared"
+    # )
+```
+
+
+## Forcasting Results
+
+Lets visualize each model's prediction accuracy
+
+```{r}
+calibration_table |>
+  modeltime_forecast(actual_data = df_ts) |>
+  plot_modeltime_forecast(.interactive = FALSE) +
+  labs(
+    y        = "Revenue",
+    title    = "Revenue",
+    subtitle = "Actual vs Predicted"
+  ) +
+  scale_y_continuous(labels = scales::label_currency(scale = 1 / 1000000, accuracy = 0.1, suffix = "M")) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    plot.title      = element_text(size = 15, face = "bold"),
+    plot.subtitle   = element_text(size = 11),
+    panel.grid      = element_blank()
+    )
+```
+
+
+
+
+**Sources:** *Matt Dancho, Julia Silge*
