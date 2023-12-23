@@ -9,7 +9,7 @@ Currently, I'm part of the dynamic team at Zion & Zion, an innovative marketing 
 
 Let's connect and explore how we can turn data into your most powerful asset!"
 images:
-  - img/me.jpg
+  - img/me_new.jpeg
 image_left: false
 text_align_left: true
 show_social_links: true # specify social accounts in site config
