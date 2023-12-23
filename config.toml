@@ -93,10 +93,10 @@ enableEmoji = true
       icon      = "linkedin" # icon name without the 'fa-'
       icon_pack = "fab"
       url       = "https://www.linkedin.com/in/alex-labuda/"
-  [[params.social]]
-      icon      = "instagram" # icon name without the 'fa-'
-      icon_pack = "fab"
-      url       = "https://www.instagram.com/alex_labuda/"
+#  [[params.social]]
+#      icon      = "instagram" # icon name without the 'fa-'
+#      icon_pack = "fab"
+#      url       = "https://www.instagram.com/alex_labuda/"
   [[params.social]]
       icon      = "chart-bar" # icon name without the 'fa-'
       icon_pack = "far"
