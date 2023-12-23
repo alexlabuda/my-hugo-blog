@@ -1,7 +1,13 @@
 ---
-title: Contact
+title: Let's Connect!
 name: Contact Us Form
-description: "This template has a **contact-us** form built right in. All you need to do is add a valid recipient form-id to the front matter of this form page and you're ready to receive submissions."
+description: "**For Data Science Inquiries:** If you have questions, ideas, or need insights related to data science, I'm all ears. Whether it's a technical challenge, a conceptual doubt, or a collaborative project idea, I'd love to hear from you.\n
+
+**For Personal Stories and Collaborations:** Life is a journey best shared. If my personal stories, interests or hobbies resonate with you or if you have your own to tell, don't hesitate to reach out. I'm also open to collaboration opportunities, guest blogging, and sharing experiences on both our platforms.\n
+
+**General Feedback:** Your feedback is invaluable. If you have any comments, suggestions, or just want to say hi, I'm here for it!\n
+
+Use the links below, or fill out the form to get in touch!"
 date: 2019-02-25T13:38:41-06:00
 draft: false
 url: contact
