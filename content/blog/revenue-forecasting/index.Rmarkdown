@@ -2,7 +2,7 @@
 title: "Bootstrapped Resampling Regression & Revenue Forecasting"
 subtitle: ""
 excerpt: "We'll analyze regression coefficients with bootstrapped resamples, visualize most important features and forecast future revenue"
-date: 2022-11-28
+date: 2023-12-22
 author: "Alex Labuda"
 draft: false
 thumbnail_left: true # for list-sidebar only

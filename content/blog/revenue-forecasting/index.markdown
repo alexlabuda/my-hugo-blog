@@ -2,7 +2,7 @@
 title: "Bootstrapped Resampling Regression & Revenue Forecasting"
 subtitle: ""
 excerpt: "We'll analyze regression coefficients with bootstrapped resamples, visualize most important features and forecast future revenue"
-date: 2022-11-28
+date: 2023-12-22
 author: "Alex Labuda"
 draft: false
 thumbnail_left: true # for list-sidebar only
@@ -106,13 +106,13 @@ We can fit a model using bootstrapped resamples of our data. This allows us to d
 
 |term             |    .lower| .estimate|  .upper|
 |:----------------|---------:|---------:|-------:|
-|as.numeric(date) | -132.5731|  -34.5793| 67.0201|
-|billboard_spend  |   -0.1206|    0.0397|  0.1667|
-|competitor_sales |    0.2641|    0.2864|  0.3042|
-|facebook_spend   |   -0.0361|    0.3629|  0.6992|
-|print_spend      |    0.2611|    0.8716|  1.4596|
-|search_spend     |   -0.5765|    0.5603|  1.7128|
-|tv_spend         |    0.2153|    0.5088|  0.7818|
+|as.numeric(date) | -125.6771|  -31.8722| 55.4291|
+|billboard_spend  |   -0.1073|    0.0417|  0.1599|
+|competitor_sales |    0.2640|    0.2865|  0.3045|
+|facebook_spend   |   -0.0169|    0.3617|  0.7183|
+|print_spend      |    0.2869|    0.8760|  1.4003|
+|search_spend     |   -0.5402|    0.5047|  1.7550|
+|tv_spend         |    0.2242|    0.5051|  0.7539|
 
 ## Viz: Bootstrapped Resampled Coefficients
 
