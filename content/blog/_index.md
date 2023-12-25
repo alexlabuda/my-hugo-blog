@@ -1,5 +1,5 @@
 ---
-title: A Blog That Works
+title: A Data Science Blog That Works
 description: |
   Welcome to my Blog! Check back soon for new content.
 author: "Alex Labuda"
